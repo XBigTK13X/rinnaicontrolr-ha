@@ -46,6 +46,26 @@ LOCAL_INITIAL_RETRY_DELAY = 1.0
 LOCAL_MAX_RETRY_DELAY = 8.0
 LOCAL_BACKOFF_MULTIPLIER = 2.0
 
+ERROR_CODE_DESCRIPTIONS: dict[str, str] = {
+    "2": "No burner operation during freeze protection mode",
+    "3": "Power interruption during bath fill",
+    "10": "Air supply or exhaust blockage",
+    "11": "No ignition",
+    "12": "Flame failure",
+    "14": "Thermal fuse",
+    "16": "Over temperature warning",
+    "32": "Outgoing water temperature sensor fault",
+    "33": "Heat exchanger outgoing temperature sensor fault",
+    "34": "Combustion air temperature sensor fault",
+    "52": "Modulating solenoid valve signal abnormal",
+    "61": "Combustion fan failure",
+    "65": "Water flow servo faulty (does not stop flow properly)",
+    "71": "SV0, SV1, SV2, and SV3 solenoid valve circuit fault",
+    "72": "Flame sensing device fault",
+    "LC": "Scale build-up in the heat exchanger",
+    "NO CODE": "No Code (nothing happens when water flow is activated).",
+}
+
 
 def _convert_to_bool(value: Any) -> bool:
     """Convert a string 'true'/'false' to a boolean, or return the boolean value."""
@@ -792,6 +812,40 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "m21_exhaust_temperature",
         )
         return float(temp) if temp is not None else None
+
+    @property
+    def error_code(self) -> str | None:
+        """Return the error code from device data.
+
+        This reads from local raw data under the key `error_code`, and
+        falls back to the cloud path if available.
+        """
+        val = self._get_value(
+            ("data", "getDevice", "info", "error_code"),
+            "error_code",
+        )
+        if val is None:
+            return None
+        if isinstance(val, int):
+            return str(val)
+        if isinstance(val, str):
+            cleaned = val.strip()
+            if not cleaned:
+                return None
+            if cleaned.isdigit():
+                return str(int(cleaned))
+            return cleaned.upper()
+        return str(val)
+
+    @property
+    def error_description(self) -> str | None:
+        """Return the brief error description for the current error code."""
+        code = self.error_code
+        if code is None:
+            return None
+        if code.isdigit():
+            code = str(int(code))
+        return ERROR_CODE_DESCRIPTIONS.get(code)
 
     # =========================================================================
     # Actions - Route to appropriate backend based on connection mode

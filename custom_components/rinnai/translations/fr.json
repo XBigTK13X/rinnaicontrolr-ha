@@ -208,6 +208,12 @@
             },
             "exhaust_temperature": {
                 "name": "Température d'échappement"
+            },
+            "error_code": {
+                "name": "Error Code"
+            },
+            "error_description": {
+                "name": "Description de l'erreur"
             }
         }
     },
@@ -233,6 +239,33 @@
         },
         "action_failed": {
             "message": "Échec de {action}: {error}"
+        }
+    },
+    "state": {
+        "sensor": {
+            "error_description": {
+                "2": "Aucun fonctionnement du brûleur en mode protection antigel",
+                "3": "Coupure de courant pendant le remplissage du bain",
+                "10": "Obstruction de l’alimentation d’air ou de l’échappement",
+                "11": "Aucun allumage",
+                "12": "Défaillance de flamme",
+                "14": "Fusible thermique",
+                "16": "Avertissement de surchauffe",
+                "32": "Défaut du capteur de température d’eau de sortie",
+                "33": "Défaut du capteur de température de sortie de l’échangeur",
+                "34": "Défaut du capteur de température d’air de combustion",
+                "52": "Signal anormal de l’électrovanne modulante",
+                "61": "Défaillance du ventilateur de combustion",
+                "65": "Servomoteur de débit d’eau défectueux (ne stoppe pas correctement le débit)",
+                "71": "Défaut du circuit des électrovannes SV0, SV1, SV2 et SV3",
+                "72": "Défaut du dispositif de détection de flamme",
+                "LC": "Accumulation de tartre dans l’échangeur",
+                "NO CODE": "Pas de code (rien ne se passe quand le débit d’eau est activé).",
+                "no_error": "Aucune erreur"
+            },
+            "error_code": {
+                "no_error": "Aucune erreur"
+            }
         }
     }
 }
