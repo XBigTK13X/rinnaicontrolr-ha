@@ -8,7 +8,7 @@
                     "connection_mode": "Modalità di connessione"
                 },
                 "data_description": {
-                    "connection_mode": "Cloud usa il tuo account Rinnai. Locale si connette direttamente allo scaldabagno. Ibrido usa locale con fallback cloud."
+                    "connection_mode": "Cloud usa il tuo account Rinnai. Locale si connette direttamente allo scaldabagno (⚠️ funziona solo con i controller RWM101 o RWM103). Ibrido usa locale con fallback cloud."
                 }
             },
             "cloud": {
@@ -79,7 +79,7 @@
                     "host": "Host"
                 },
                 "data_description": {
-                    "connection_mode": "Cloud usa il tuo account Rinnai. Locale si connette direttamente allo scaldabagno. Ibrido usa locale con fallback cloud.",
+                    "connection_mode": "Cloud usa il tuo account Rinnai. Locale si connette direttamente allo scaldabagno (⚠️ funziona solo con i controller RWM101 o RWM103). Ibrido usa locale con fallback cloud.",
                     "host": "Indirizzo IP del controller del tuo scaldabagno Rinnai (richiesto per modalità Locale e Ibrida)"
                 }
             },
