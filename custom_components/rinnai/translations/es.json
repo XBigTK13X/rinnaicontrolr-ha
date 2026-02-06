@@ -210,10 +210,33 @@
                 "name": "Temperatura de escape"
             },
             "error_code": {
-                "name": "Error Code"
+                "name": "Error Code",
+                "state": {
+                    "no_error": "Sin error"
+                }
             },
             "error_description": {
-                "name": "Descripción del error"
+                "name": "Descripción del error",
+                "state": {
+                    "2": "Sin funcionamiento del quemador en modo de protección contra congelación",
+                    "3": "Interrupción de energía durante el llenado del baño",
+                    "10": "Bloqueo de suministro de aire o de escape",
+                    "11": "Sin encendido",
+                    "12": "Fallo de llama",
+                    "14": "Fusible térmico",
+                    "16": "Advertencia de sobretemperatura",
+                    "32": "Fallo del sensor de temperatura de agua de salida",
+                    "33": "Fallo del sensor de temperatura de salida del intercambiador de calor",
+                    "34": "Fallo del sensor de temperatura de aire de combustión",
+                    "52": "Señal anormal de la válvula solenoide modulante",
+                    "61": "Fallo del ventilador de combustión",
+                    "65": "Servo de flujo de agua defectuoso (no detiene el flujo correctamente)",
+                    "71": "Fallo del circuito de válvulas solenoides SV0, SV1, SV2 y SV3",
+                    "72": "Fallo del dispositivo de detección de llama",
+                    "lc": "Acumulación de sarro en el intercambiador de calor",
+                    "no_code": "Sin código (no sucede nada cuando se activa el flujo de agua).",
+                    "no_error": "Sin error"
+                }
             }
         }
     },
@@ -239,33 +262,6 @@
         },
         "action_failed": {
             "message": "Error en {action}: {error}"
-        }
-    },
-    "state": {
-        "sensor": {
-            "error_description": {
-                "2": "Sin funcionamiento del quemador en modo de protección contra congelación",
-                "3": "Interrupción de energía durante el llenado del baño",
-                "10": "Bloqueo de suministro de aire o de escape",
-                "11": "Sin encendido",
-                "12": "Fallo de llama",
-                "14": "Fusible térmico",
-                "16": "Advertencia de sobretemperatura",
-                "32": "Fallo del sensor de temperatura de agua de salida",
-                "33": "Fallo del sensor de temperatura de salida del intercambiador de calor",
-                "34": "Fallo del sensor de temperatura de aire de combustión",
-                "52": "Señal anormal de la válvula solenoide modulante",
-                "61": "Fallo del ventilador de combustión",
-                "65": "Servo de flujo de agua defectuoso (no detiene el flujo correctamente)",
-                "71": "Fallo del circuito de válvulas solenoides SV0, SV1, SV2 y SV3",
-                "72": "Fallo del dispositivo de detección de llama",
-                "LC": "Acumulación de sarro en el intercambiador de calor",
-                "NO CODE": "Sin código (no sucede nada cuando se activa el flujo de agua).",
-                "no_error": "Sin error"
-            },
-            "error_code": {
-                "no_error": "Sin error"
-            }
         }
     }
 }

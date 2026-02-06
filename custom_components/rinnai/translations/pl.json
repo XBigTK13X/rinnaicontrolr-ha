@@ -210,10 +210,33 @@
                 "name": "Temperatura spalin"
             },
             "error_code": {
-                "name": "Error Code"
+                "name": "Error Code",
+                "state": {
+                    "no_error": "Brak błędu"
+                }
             },
             "error_description": {
-                "name": "Opis błędu"
+                "name": "Opis błędu",
+                "state": {
+                    "2": "Brak pracy palnika w trybie ochrony przed zamarzaniem",
+                    "3": "Przerwa zasilania podczas napełniania wanny",
+                    "10": "Zablokowany dopływ powietrza lub wylot spalin",
+                    "11": "Brak zapłonu",
+                    "12": "Zanik płomienia",
+                    "14": "Bezpiecznik termiczny",
+                    "16": "Ostrzeżenie o przegrzaniu",
+                    "32": "Błąd czujnika temperatury wody na wyjściu",
+                    "33": "Błąd czujnika temperatury wylotowej wymiennika ciepła",
+                    "34": "Błąd czujnika temperatury powietrza spalania",
+                    "52": "Nieprawidłowy sygnał zaworu elektromagnetycznego modulującego",
+                    "61": "Awaria wentylatora spalania",
+                    "65": "Uszkodzony serwomechanizm przepływu wody (nie zatrzymuje przepływu)",
+                    "71": "Błąd obwodu zaworów elektromagnetycznych SV0, SV1, SV2 i SV3",
+                    "72": "Błąd urządzenia wykrywania płomienia",
+                    "lc": "Osad kamienia w wymienniku ciepła",
+                    "no_code": "Brak kodu (nic się nie dzieje po uruchomieniu przepływu wody).",
+                    "no_error": "Brak błędu"
+                }
             }
         }
     },
@@ -239,33 +262,6 @@
         },
         "action_failed": {
             "message": "Błąd {action}: {error}"
-        }
-    },
-    "state": {
-        "sensor": {
-            "error_description": {
-                "2": "Brak pracy palnika w trybie ochrony przed zamarzaniem",
-                "3": "Przerwa zasilania podczas napełniania wanny",
-                "10": "Zablokowany dopływ powietrza lub wylot spalin",
-                "11": "Brak zapłonu",
-                "12": "Zanik płomienia",
-                "14": "Bezpiecznik termiczny",
-                "16": "Ostrzeżenie o przegrzaniu",
-                "32": "Błąd czujnika temperatury wody na wyjściu",
-                "33": "Błąd czujnika temperatury wylotowej wymiennika ciepła",
-                "34": "Błąd czujnika temperatury powietrza spalania",
-                "52": "Nieprawidłowy sygnał zaworu elektromagnetycznego modulującego",
-                "61": "Awaria wentylatora spalania",
-                "65": "Uszkodzony serwomechanizm przepływu wody (nie zatrzymuje przepływu)",
-                "71": "Błąd obwodu zaworów elektromagnetycznych SV0, SV1, SV2 i SV3",
-                "72": "Błąd urządzenia wykrywania płomienia",
-                "LC": "Osad kamienia w wymienniku ciepła",
-                "NO CODE": "Brak kodu (nic się nie dzieje po uruchomieniu przepływu wody).",
-                "no_error": "Brak błędu"
-            },
-            "error_code": {
-                "no_error": "Brak błędu"
-            }
         }
     }
 }

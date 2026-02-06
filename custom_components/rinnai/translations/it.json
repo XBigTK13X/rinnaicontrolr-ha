@@ -210,10 +210,33 @@
                 "name": "Temperatura di scarico"
             },
             "error_code": {
-                "name": "Error Code"
+                "name": "Error Code",
+                "state": {
+                    "no_error": "Nessun errore"
+                }
             },
             "error_description": {
-                "name": "Descrizione errore"
+                "name": "Descrizione errore",
+                "state": {
+                    "2": "Nessun funzionamento del bruciatore in modalità protezione antigelo",
+                    "3": "Interruzione di corrente durante il riempimento del bagno",
+                    "10": "Blocco dell’alimentazione aria o dello scarico",
+                    "11": "Mancata accensione",
+                    "12": "Guasto fiamma",
+                    "14": "Fusibile termico",
+                    "16": "Avviso di sovratemperatura",
+                    "32": "Guasto sensore temperatura acqua in uscita",
+                    "33": "Guasto sensore temperatura uscita scambiatore di calore",
+                    "34": "Guasto sensore temperatura aria di combustione",
+                    "52": "Segnale anomalo della valvola solenoide modulante",
+                    "61": "Guasto ventola di combustione",
+                    "65": "Servo del flusso d’acqua guasto (non arresta correttamente il flusso)",
+                    "71": "Guasto circuito valvole solenoidi SV0, SV1, SV2 e SV3",
+                    "72": "Guasto dispositivo rilevamento fiamma",
+                    "lc": "Accumulo di calcare nello scambiatore di calore",
+                    "no_code": "Nessun codice (non accade nulla quando si attiva il flusso d’acqua).",
+                    "no_error": "Nessun errore"
+                }
             }
         }
     },
@@ -239,33 +262,6 @@
         },
         "action_failed": {
             "message": "Errore in {action}: {error}"
-        }
-    },
-    "state": {
-        "sensor": {
-            "error_description": {
-                "2": "Nessun funzionamento del bruciatore in modalità protezione antigelo",
-                "3": "Interruzione di corrente durante il riempimento del bagno",
-                "10": "Blocco dell’alimentazione aria o dello scarico",
-                "11": "Mancata accensione",
-                "12": "Guasto fiamma",
-                "14": "Fusibile termico",
-                "16": "Avviso di sovratemperatura",
-                "32": "Guasto sensore temperatura acqua in uscita",
-                "33": "Guasto sensore temperatura uscita scambiatore di calore",
-                "34": "Guasto sensore temperatura aria di combustione",
-                "52": "Segnale anomalo della valvola solenoide modulante",
-                "61": "Guasto ventola di combustione",
-                "65": "Servo del flusso d’acqua guasto (non arresta correttamente il flusso)",
-                "71": "Guasto circuito valvole solenoidi SV0, SV1, SV2 e SV3",
-                "72": "Guasto dispositivo rilevamento fiamma",
-                "LC": "Accumulo di calcare nello scambiatore di calore",
-                "NO CODE": "Nessun codice (non accade nulla quando si attiva il flusso d’acqua).",
-                "no_error": "Nessun errore"
-            },
-            "error_code": {
-                "no_error": "Nessun errore"
-            }
         }
     }
 }

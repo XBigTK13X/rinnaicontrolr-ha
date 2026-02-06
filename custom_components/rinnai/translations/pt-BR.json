@@ -210,10 +210,33 @@
                 "name": "Temperatura de exaustão"
             },
             "error_code": {
-                "name": "Error Code"
+                "name": "Error Code",
+                "state": {
+                    "no_error": "Sem erro"
+                }
             },
             "error_description": {
-                "name": "Descrição do erro"
+                "name": "Descrição do erro",
+                "state": {
+                    "2": "Sem funcionamento do queimador no modo de proteção contra congelamento",
+                    "3": "Interrupção de energia durante o enchimento do banho",
+                    "10": "Bloqueio da entrada de ar ou do escape",
+                    "11": "Sem ignição",
+                    "12": "Falha de chama",
+                    "14": "Fusível térmico",
+                    "16": "Aviso de sobretemperatura",
+                    "32": "Falha do sensor de temperatura da água de saída",
+                    "33": "Falha do sensor de temperatura de saída do trocador de calor",
+                    "34": "Falha do sensor de temperatura do ar de combustão",
+                    "52": "Sinal anormal da válvula solenoide modulante",
+                    "61": "Falha do ventilador de combustão",
+                    "65": "Servo do fluxo de água com defeito (não interrompe o fluxo corretamente)",
+                    "71": "Falha no circuito das válvulas solenoides SV0, SV1, SV2 e SV3",
+                    "72": "Falha do dispositivo de detecção de chama",
+                    "lc": "Acúmulo de calcário no trocador de calor",
+                    "no_code": "Sem código (nada acontece quando o fluxo de água é ativado).",
+                    "no_error": "Sem erro"
+                }
             }
         }
     },
@@ -239,33 +262,6 @@
         },
         "action_failed": {
             "message": "Falha em {action}: {error}"
-        }
-    },
-    "state": {
-        "sensor": {
-            "error_description": {
-                "2": "Sem funcionamento do queimador no modo de proteção contra congelamento",
-                "3": "Interrupção de energia durante o enchimento do banho",
-                "10": "Bloqueio da entrada de ar ou do escape",
-                "11": "Sem ignição",
-                "12": "Falha de chama",
-                "14": "Fusível térmico",
-                "16": "Aviso de sobretemperatura",
-                "32": "Falha do sensor de temperatura da água de saída",
-                "33": "Falha do sensor de temperatura de saída do trocador de calor",
-                "34": "Falha do sensor de temperatura do ar de combustão",
-                "52": "Sinal anormal da válvula solenoide modulante",
-                "61": "Falha do ventilador de combustão",
-                "65": "Servo do fluxo de água com defeito (não interrompe o fluxo corretamente)",
-                "71": "Falha no circuito das válvulas solenoides SV0, SV1, SV2 e SV3",
-                "72": "Falha do dispositivo de detecção de chama",
-                "LC": "Acúmulo de calcário no trocador de calor",
-                "NO CODE": "Sem código (nada acontece quando o fluxo de água é ativado).",
-                "no_error": "Sem erro"
-            },
-            "error_code": {
-                "no_error": "Sem erro"
-            }
         }
     }
 }

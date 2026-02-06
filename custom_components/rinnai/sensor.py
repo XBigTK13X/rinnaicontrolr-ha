@@ -28,6 +28,42 @@ if TYPE_CHECKING:
 
 # Limit concurrent updates per platform
 PARALLEL_UPDATES = 1
+NO_ERROR_STATE = "no_error"
+
+
+def _error_description_state_key(code: str | None) -> str | None:
+    """Convert raw device error code to a translation-safe state key."""
+    if code is None:
+        return None
+    if code.isdigit():
+        return str(int(code))
+    if code == "LC":
+        return "lc"
+    if code == "NO CODE":
+        return "no_code"
+    return code.lower().replace(" ", "_")
+
+
+ERROR_DESCRIPTION_STATES: tuple[str, ...] = (
+    NO_ERROR_STATE,
+    "2",
+    "3",
+    "10",
+    "11",
+    "12",
+    "14",
+    "16",
+    "32",
+    "33",
+    "34",
+    "52",
+    "61",
+    "65",
+    "71",
+    "72",
+    "lc",
+    "no_code",
+)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -205,7 +241,9 @@ SENSOR_DESCRIPTIONS: tuple[RinnaiSensorEntityDescription, ...] = (
         key="error_description",
         translation_key="error_description",
         icon="mdi:alert-circle-outline",
-        value_fn=lambda device: device.error_description,
+        device_class=SensorDeviceClass.ENUM,
+        options=ERROR_DESCRIPTION_STATES,
+        value_fn=lambda device: _error_description_state_key(device.error_code),
         is_diagnostic=True,
         disabled_by_default=True,
     ),
@@ -257,6 +295,11 @@ class RinnaiSensor(RinnaiEntity, SensorEntity):
     def native_value(self) -> float | str | None:
         """Return the sensor value."""
         value = self.entity_description.value_fn(self._device)
+        if (
+            self.entity_description.key in {"error_code", "error_description"}
+            and value is None
+        ):
+            return NO_ERROR_STATE
         if value is None:
             return None
         # If numeric, apply multiplier and rounding
