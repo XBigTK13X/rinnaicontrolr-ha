@@ -254,6 +254,15 @@
                     "no_code": "Ingen kod (inget händer när vattenflödet aktiveras).",
                     "no_error": "Inget fel"
                 }
+            },
+            "wifi_ssid": {
+                "name": "Wi-Fi SSID"
+            },
+            "wifi_signal_strength": {
+                "name": "Wi-Fi signal strength"
+            },
+            "wifi_channel_frequency": {
+                "name": "Wi-Fi channel frequency"
             }
         }
     },

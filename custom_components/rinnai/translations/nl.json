@@ -254,6 +254,15 @@
                     "no_code": "Geen code (er gebeurt niets wanneer de waterstroom wordt geactiveerd).",
                     "no_error": "Geen fout"
                 }
+            },
+            "wifi_ssid": {
+                "name": "Wi-Fi SSID"
+            },
+            "wifi_signal_strength": {
+                "name": "Wi-Fi signal strength"
+            },
+            "wifi_channel_frequency": {
+                "name": "Wi-Fi channel frequency"
             }
         }
     },

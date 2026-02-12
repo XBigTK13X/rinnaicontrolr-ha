@@ -847,6 +847,33 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             code = str(int(code))
         return ERROR_CODE_DESCRIPTIONS.get(code)
 
+    @property
+    def wifi_ssid(self) -> str | None:
+        """Return the WiFi SSID the device is connected to."""
+        val = self._get_value(
+            ("data", "getDevice", "wifi_ssid"),
+            "wifi_ssid",
+        )
+        return str(val) if val is not None else None
+
+    @property
+    def wifi_signal_strength(self) -> float | None:
+        """Return the WiFi signal strength in dBm."""
+        val = self._get_value(
+            ("data", "getDevice", "wifi_signal_strength"),
+            "wifi_signal_strength",
+        )
+        return float(val) if val is not None else None
+
+    @property
+    def wifi_channel_frequency(self) -> float | None:
+        """Return the WiFi channel frequency in MHz."""
+        val = self._get_value(
+            ("data", "getDevice", "wifi_channel_frequency"),
+            "wifi_channel_frequency",
+        )
+        return float(val) if val is not None else None
+
     # =========================================================================
     # Actions - Route to appropriate backend based on connection mode
     # =========================================================================

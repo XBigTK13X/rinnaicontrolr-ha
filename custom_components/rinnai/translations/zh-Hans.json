@@ -254,6 +254,15 @@
                     "no_code": "无代码（开启水流时无响应）。",
                     "no_error": "无错误"
                 }
+            },
+            "wifi_ssid": {
+                "name": "Wi-Fi SSID"
+            },
+            "wifi_signal_strength": {
+                "name": "Wi-Fi signal strength"
+            },
+            "wifi_channel_frequency": {
+                "name": "Wi-Fi channel frequency"
             }
         }
     },

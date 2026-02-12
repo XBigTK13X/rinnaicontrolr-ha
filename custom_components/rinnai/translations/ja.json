@@ -254,6 +254,15 @@
                     "no_code": "コードなし（水流を作動させても何も起こらない）。",
                     "no_error": "エラーなし"
                 }
+            },
+            "wifi_ssid": {
+                "name": "Wi-Fi SSID"
+            },
+            "wifi_signal_strength": {
+                "name": "Wi-Fi signal strength"
+            },
+            "wifi_channel_frequency": {
+                "name": "Wi-Fi channel frequency"
             }
         }
     },

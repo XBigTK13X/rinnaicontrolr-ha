@@ -121,6 +121,11 @@ def _create_mock_device():
     device.available = True
     device.error_code = None
 
+    # WiFi properties
+    device.wifi_ssid = "MyNetwork"
+    device.wifi_signal_strength = -45.0
+    device.wifi_channel_frequency = 2437.0
+
     return device
 
 
@@ -560,6 +565,86 @@ async def test_error_description_sensor_is_enum(monkeypatch):
     assert "11" in description.options
     assert "lc" in description.options
     assert "no_code" in description.options
+
+
+# =====================
+# WiFi Sensor Tests
+# =====================
+
+
+@pytest.mark.asyncio
+async def test_wifi_ssid_sensor(monkeypatch):
+    """Test WiFi SSID sensor returns correct value."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    description = _get_sensor_description(sensor_mod, "wifi_ssid")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "MyNetwork"
+
+
+@pytest.mark.asyncio
+async def test_wifi_ssid_sensor_none(monkeypatch):
+    """Test WiFi SSID sensor returns None when value is None."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.wifi_ssid = None
+    description = _get_sensor_description(sensor_mod, "wifi_ssid")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value is None
+
+
+@pytest.mark.asyncio
+async def test_wifi_signal_strength_sensor(monkeypatch):
+    """Test WiFi signal strength sensor returns correct value."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    description = _get_sensor_description(sensor_mod, "wifi_signal_strength")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == -45.0
+
+
+@pytest.mark.asyncio
+async def test_wifi_signal_strength_sensor_none(monkeypatch):
+    """Test WiFi signal strength sensor returns None when value is None."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.wifi_signal_strength = None
+    description = _get_sensor_description(sensor_mod, "wifi_signal_strength")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value is None
+
+
+@pytest.mark.asyncio
+async def test_wifi_channel_frequency_sensor(monkeypatch):
+    """Test WiFi channel frequency sensor returns correct value."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    description = _get_sensor_description(sensor_mod, "wifi_channel_frequency")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == 2437.0
+
+
+@pytest.mark.asyncio
+async def test_wifi_channel_frequency_sensor_none(monkeypatch):
+    """Test WiFi channel frequency sensor returns None when value is None."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.wifi_channel_frequency = None
+    description = _get_sensor_description(sensor_mod, "wifi_channel_frequency")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value is None
 
 
 # =====================

@@ -254,6 +254,15 @@
                     "no_code": "코드 없음(수류가 활성화되어도 아무 반응 없음).",
                     "no_error": "오류 없음"
                 }
+            },
+            "wifi_ssid": {
+                "name": "Wi-Fi SSID"
+            },
+            "wifi_signal_strength": {
+                "name": "Wi-Fi signal strength"
+            },
+            "wifi_channel_frequency": {
+                "name": "Wi-Fi channel frequency"
             }
         }
     },
