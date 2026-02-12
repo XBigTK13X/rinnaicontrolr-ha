@@ -208,6 +208,35 @@
             },
             "exhaust_temperature": {
                 "name": "Uitlaattemperatuur"
+            },
+            "error_code": {
+                "name": "Error Code",
+                "state": {
+                    "no_error": "Geen fout"
+                }
+            },
+            "error_description": {
+                "name": "Foutbeschrijving",
+                "state": {
+                    "2": "Geen branderwerking in vorstbeveiligingsmodus",
+                    "3": "Stroomonderbreking tijdens badvullen",
+                    "10": "Blokkade van luchttoevoer of afvoer",
+                    "11": "Geen ontsteking",
+                    "12": "Vlamuitval",
+                    "14": "Thermische zekering",
+                    "16": "Overtemperatuurwaarschuwing",
+                    "32": "Storing uitlaatwatertemperatuursensor",
+                    "33": "Storing uitlaattemperatuursensor warmtewisselaar",
+                    "34": "Storing verbrandingslucht-temperatuursensor",
+                    "52": "Abnormaal signaal modulerende magneetklep",
+                    "61": "Verbrandingsventilator defect",
+                    "65": "Waterstroom-servo defect (stopt de stroom niet goed)",
+                    "71": "SV0, SV1, SV2 en SV3 magneetklepcircuitstoring",
+                    "72": "Vlamdetectie-apparaat defect",
+                    "lc": "Kalkaanslag in de warmtewisselaar",
+                    "no_code": "Geen code (er gebeurt niets wanneer de waterstroom wordt geactiveerd).",
+                    "no_error": "Geen fout"
+                }
             }
         }
     },

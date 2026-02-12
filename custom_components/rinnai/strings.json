@@ -210,6 +210,35 @@
             },
             "exhaust_temperature": {
                 "name": "Exhaust Temperature"
+            },
+            "error_code": {
+                "name": "Error Code",
+                "state": {
+                    "no_error": "No Error"
+                }
+            },
+            "error_description": {
+                "name": "Error Description",
+                "state": {
+                    "2": "No burner operation during freeze protection mode",
+                    "3": "Power interruption during bath fill",
+                    "10": "Air supply or exhaust blockage",
+                    "11": "No ignition",
+                    "12": "Flame failure",
+                    "14": "Thermal fuse",
+                    "16": "Over temperature warning",
+                    "32": "Outgoing water temperature sensor fault",
+                    "33": "Heat exchanger outgoing temperature sensor fault",
+                    "34": "Combustion air temperature sensor fault",
+                    "52": "Modulating solenoid valve signal abnormal",
+                    "61": "Combustion fan failure",
+                    "65": "Water flow servo faulty (does not stop flow properly)",
+                    "71": "SV0, SV1, SV2, and SV3 solenoid valve circuit fault",
+                    "72": "Flame sensing device fault",
+                    "lc": "Scale build-up in the heat exchanger",
+                    "no_code": "No Code (nothing happens when water flow is activated).",
+                    "no_error": "No Error"
+                }
             }
         }
     },

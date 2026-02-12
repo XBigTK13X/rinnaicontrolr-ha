@@ -20,7 +20,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
 from . import RinnaiConfigEntry
 from .entity import RinnaiEntity
 
@@ -29,13 +28,50 @@ if TYPE_CHECKING:
 
 # Limit concurrent updates per platform
 PARALLEL_UPDATES = 1
+NO_ERROR_STATE = "no_error"
+
+
+def _error_description_state_key(code: str | None) -> str | None:
+    """Convert raw device error code to a translation-safe state key."""
+    if code is None:
+        return None
+    if code.isdigit():
+        return str(int(code))
+    if code == "LC":
+        return "lc"
+    if code == "NO CODE":
+        return "no_code"
+    return code.lower().replace(" ", "_")
+
+
+ERROR_DESCRIPTION_STATES: tuple[str, ...] = (
+    NO_ERROR_STATE,
+    "2",
+    "3",
+    "10",
+    "11",
+    "12",
+    "14",
+    "16",
+    "32",
+    "33",
+    "34",
+    "52",
+    "61",
+    "65",
+    "71",
+    "72",
+    "lc",
+    "no_code",
+)
 
 
 @dataclass(frozen=True, kw_only=True)
 class RinnaiSensorEntityDescription(SensorEntityDescription):
     """Describes a Rinnai sensor entity."""
 
-    value_fn: Callable[[RinnaiDeviceDataUpdateCoordinator], float | None]
+    # value_fn may return numeric or string values depending on the sensor
+    value_fn: Callable[[RinnaiDeviceDataUpdateCoordinator], float | str | None]
     value_multiplier: float = 1.0
     round_digits: int = 1
     # Whether this is a diagnostic sensor (less commonly used)
@@ -191,6 +227,26 @@ SENSOR_DESCRIPTIONS: tuple[RinnaiSensorEntityDescription, ...] = (
         is_diagnostic=True,
         disabled_by_default=True,
     ),
+    RinnaiSensorEntityDescription(
+        key="error_code",
+        translation_key="error_code",
+        icon="mdi:alert-circle-outline",
+        # Diagnostic field from local raw_data
+        value_fn=lambda device: device.error_code,
+        round_digits=0,
+        is_diagnostic=True,
+        disabled_by_default=True,
+    ),
+    RinnaiSensorEntityDescription(
+        key="error_description",
+        translation_key="error_description",
+        icon="mdi:alert-circle-outline",
+        device_class=SensorDeviceClass.ENUM,
+        options=ERROR_DESCRIPTION_STATES,
+        value_fn=lambda device: _error_description_state_key(device.error_code),
+        is_diagnostic=True,
+        disabled_by_default=True,
+    ),
 )
 
 
@@ -236,11 +292,22 @@ class RinnaiSensor(RinnaiEntity, SensorEntity):
             self._attr_entity_registry_enabled_default = False
 
     @property
-    def native_value(self) -> float | None:
+    def native_value(self) -> float | str | None:
         """Return the sensor value."""
         value = self.entity_description.value_fn(self._device)
+        if (
+            self.entity_description.key in {"error_code", "error_description"}
+            and value is None
+        ):
+            return NO_ERROR_STATE
         if value is None:
             return None
-        # Apply multiplier and round
-        adjusted_value = value * self.entity_description.value_multiplier
-        return round(adjusted_value, self.entity_description.round_digits)
+        # If numeric, apply multiplier and rounding
+        if isinstance(value, (int, float)):
+            adjusted_value = value * self.entity_description.value_multiplier
+            if self.entity_description.round_digits == 0:
+                return int(round(adjusted_value))
+            return round(adjusted_value, self.entity_description.round_digits)
+
+        # Otherwise return raw value (e.g., strings for diagnostic fields)
+        return value
