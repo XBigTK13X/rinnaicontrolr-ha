@@ -851,7 +851,7 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def wifi_ssid(self) -> str | None:
         """Return the WiFi SSID the device is connected to."""
         val = self._get_value(
-            ("data", "getDevice", "wifi_ssid"),
+            ("data", "getDevice", "info", "wifi_ssid"),
             "wifi_ssid",
         )
         return str(val) if val is not None else None
@@ -860,7 +860,7 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def wifi_signal_strength(self) -> float | None:
         """Return the WiFi signal strength in dBm."""
         val = self._get_value(
-            ("data", "getDevice", "wifi_signal_strength"),
+            ("data", "getDevice", "info", "wifi_signal_strength"),
             "wifi_signal_strength",
         )
         return float(val) if val is not None else None
@@ -869,7 +869,7 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def wifi_channel_frequency(self) -> float | None:
         """Return the WiFi channel frequency in MHz."""
         val = self._get_value(
-            ("data", "getDevice", "wifi_channel_frequency"),
+            ("data", "getDevice", "info", "wifi_channel_frequency"),
             "wifi_channel_frequency",
         )
         return float(val) if val is not None else None
