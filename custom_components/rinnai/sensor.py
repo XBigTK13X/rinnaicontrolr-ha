@@ -65,6 +65,27 @@ ERROR_DESCRIPTION_STATES: tuple[str, ...] = (
     "no_code",
 )
 
+ERROR_CODE_STATES: tuple[str, ...] = (
+    NO_ERROR_STATE,
+    "2",
+    "3",
+    "10",
+    "11",
+    "12",
+    "14",
+    "16",
+    "32",
+    "33",
+    "34",
+    "52",
+    "61",
+    "65",
+    "71",
+    "72",
+    "lc",
+    "no_code",
+)
+
 
 @dataclass(frozen=True, kw_only=True)
 class RinnaiSensorEntityDescription(SensorEntityDescription):
@@ -231,9 +252,9 @@ SENSOR_DESCRIPTIONS: tuple[RinnaiSensorEntityDescription, ...] = (
         key="error_code",
         translation_key="error_code",
         icon="mdi:alert-circle-outline",
-        # Diagnostic field from local raw_data
-        value_fn=lambda device: device.error_code,
-        round_digits=0,
+        device_class=SensorDeviceClass.ENUM,
+        options=ERROR_CODE_STATES,
+        value_fn=lambda device: _error_description_state_key(device.error_code),
         is_diagnostic=True,
         disabled_by_default=True,
     ),

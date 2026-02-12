@@ -119,6 +119,7 @@ def _create_mock_device():
     device.is_recirculating = True
     device.is_heating = False
     device.available = True
+    device.error_code = None
 
     return device
 
@@ -371,6 +372,194 @@ async def test_fan_frequency_sensor_none(monkeypatch):
     sensor = sensor_mod.RinnaiSensor(device, description)
 
     assert sensor.native_value is None
+
+
+# =====================
+# Error Sensor Helper Tests
+# =====================
+
+
+@pytest.mark.asyncio
+async def test_error_description_state_key_none(monkeypatch):
+    """Test _error_description_state_key returns None for None input."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    assert sensor_mod._error_description_state_key(None) is None
+
+
+@pytest.mark.asyncio
+async def test_error_description_state_key_digit_code(monkeypatch):
+    """Test _error_description_state_key normalizes digit codes."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    assert sensor_mod._error_description_state_key("11") == "11"
+    assert sensor_mod._error_description_state_key("011") == "11"
+    assert sensor_mod._error_description_state_key("2") == "2"
+
+
+@pytest.mark.asyncio
+async def test_error_description_state_key_lc(monkeypatch):
+    """Test _error_description_state_key handles LC code."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    assert sensor_mod._error_description_state_key("LC") == "lc"
+
+
+@pytest.mark.asyncio
+async def test_error_description_state_key_no_code(monkeypatch):
+    """Test _error_description_state_key handles NO CODE."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    assert sensor_mod._error_description_state_key("NO CODE") == "no_code"
+
+
+@pytest.mark.asyncio
+async def test_error_description_state_key_unknown_string(monkeypatch):
+    """Test _error_description_state_key handles unknown strings."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    assert sensor_mod._error_description_state_key("SOME ERROR") == "some_error"
+
+
+# =====================
+# Error Code Sensor Tests
+# =====================
+
+
+@pytest.mark.asyncio
+async def test_error_code_sensor_no_error(monkeypatch):
+    """Test error_code sensor returns 'no_error' when code is None."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.error_code = None
+    description = _get_sensor_description(sensor_mod, "error_code")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "no_error"
+
+
+@pytest.mark.asyncio
+async def test_error_code_sensor_numeric_code(monkeypatch):
+    """Test error_code sensor returns normalized numeric code."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.error_code = "11"
+    description = _get_sensor_description(sensor_mod, "error_code")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "11"
+
+
+@pytest.mark.asyncio
+async def test_error_code_sensor_lc_code(monkeypatch):
+    """Test error_code sensor returns 'lc' for LC error."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.error_code = "LC"
+    description = _get_sensor_description(sensor_mod, "error_code")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "lc"
+
+
+@pytest.mark.asyncio
+async def test_error_code_sensor_no_code(monkeypatch):
+    """Test error_code sensor returns 'no_code' for NO CODE error."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.error_code = "NO CODE"
+    description = _get_sensor_description(sensor_mod, "error_code")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "no_code"
+
+
+@pytest.mark.asyncio
+async def test_error_code_sensor_is_enum(monkeypatch):
+    """Test error_code sensor has ENUM device class and options."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    from homeassistant.components.sensor import SensorDeviceClass
+
+    description = _get_sensor_description(sensor_mod, "error_code")
+
+    assert description.device_class == SensorDeviceClass.ENUM
+    assert description.options is not None
+    assert "no_error" in description.options
+    assert "11" in description.options
+    assert "lc" in description.options
+    assert "no_code" in description.options
+
+
+# =====================
+# Error Description Sensor Tests
+# =====================
+
+
+@pytest.mark.asyncio
+async def test_error_description_sensor_no_error(monkeypatch):
+    """Test error_description sensor returns 'no_error' when code is None."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.error_code = None
+    description = _get_sensor_description(sensor_mod, "error_description")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "no_error"
+
+
+@pytest.mark.asyncio
+async def test_error_description_sensor_numeric_code(monkeypatch):
+    """Test error_description sensor returns normalized state key for numeric code."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.error_code = "11"
+    description = _get_sensor_description(sensor_mod, "error_description")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "11"
+
+
+@pytest.mark.asyncio
+async def test_error_description_sensor_lc_code(monkeypatch):
+    """Test error_description sensor returns 'lc' for LC error code."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.error_code = "LC"
+    description = _get_sensor_description(sensor_mod, "error_description")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "lc"
+
+
+@pytest.mark.asyncio
+async def test_error_description_sensor_no_code(monkeypatch):
+    """Test error_description sensor returns 'no_code' for NO CODE."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    device = _create_mock_device()
+    device.error_code = "NO CODE"
+    description = _get_sensor_description(sensor_mod, "error_description")
+
+    sensor = sensor_mod.RinnaiSensor(device, description)
+
+    assert sensor.native_value == "no_code"
+
+
+@pytest.mark.asyncio
+async def test_error_description_sensor_is_enum(monkeypatch):
+    """Test error_description sensor has ENUM device class and options."""
+    sensor_mod, _ = _load_entity_modules(monkeypatch)
+    from homeassistant.components.sensor import SensorDeviceClass
+
+    description = _get_sensor_description(sensor_mod, "error_description")
+
+    assert description.device_class == SensorDeviceClass.ENUM
+    assert description.options is not None
+    assert "no_error" in description.options
+    assert "11" in description.options
+    assert "lc" in description.options
+    assert "no_code" in description.options
 
 
 # =====================
