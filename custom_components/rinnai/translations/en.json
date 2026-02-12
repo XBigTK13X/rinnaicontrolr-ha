@@ -213,7 +213,24 @@
             "error_code": {
                 "name": "Error Code",
                 "state": {
-                    "no_error": "No Error"
+                    "no_error": "No Error",
+                    "2": "2",
+                    "3": "3",
+                    "10": "10",
+                    "11": "11",
+                    "12": "12",
+                    "14": "14",
+                    "16": "16",
+                    "32": "32",
+                    "33": "33",
+                    "34": "34",
+                    "52": "52",
+                    "61": "61",
+                    "65": "65",
+                    "71": "71",
+                    "72": "72",
+                    "lc": "LC",
+                    "no_code": "NO CODE"
                 }
             },
             "error_description": {
@@ -238,6 +255,15 @@
                     "no_code": "No Code (nothing happens when water flow is activated).",
                     "no_error": "No Error"
                 }
+            },
+            "wifi_ssid": {
+                "name": "Wi-Fi SSID"
+            },
+            "wifi_signal_strength": {
+                "name": "Wi-Fi signal strength"
+            },
+            "wifi_channel_frequency": {
+                "name": "Wi-Fi channel frequency"
             }
         }
     },

@@ -67,5 +67,9 @@ Thumbs.db
 claude/
 CLAUDE.md
 
+# Copilot
+.github/copilot-instructions.md
+.github/docs/
+
 # Documentation (generated locally, used for PR descriptions)
 CHANGELOG.md

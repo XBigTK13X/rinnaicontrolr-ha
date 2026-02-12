@@ -78,6 +78,7 @@ class _FakeDevice:
                         "m09_fan_current": 150,
                         "m05_fan_frequency": 60,
                         "m20_pump_cycles": 3000,
+                        "error_code": "11",
                     },
                     "activity": {
                         "eventType": "idle",
@@ -607,6 +608,7 @@ class _FakeLocalClient:
             "m19_pump_hours": 500,
             "m20_pump_cycles": 200,
             "m21_exhaust_temperature": 150,
+            "error_code": "12",
         }
 
     async def do_maintenance_retrieval(self):
@@ -829,3 +831,276 @@ async def test_maintenance_skipped_when_disabled(hass, monkeypatch):
     await coordinator._async_update_data()
 
     assert maintenance_called is False
+
+
+# =====================
+# Error Code Property Tests
+# =====================
+
+
+@pytest.mark.asyncio
+async def test_coordinator_error_code_property(hass, monkeypatch):
+    """Test coordinator error_code property with cloud data."""
+    device_mod = _load_device_module(monkeypatch)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "email": "test@example.com",
+            "conf_access_token": "access",
+            "conf_refresh_token": "refresh",
+        },
+        options={"maint_interval_enabled": False},
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    api = _FakeAPI()
+    coordinator = device_mod.RinnaiDeviceDataUpdateCoordinator(
+        hass, "device-1", dict(entry.options), entry, api_client=api
+    )
+
+    await coordinator._async_update_data()
+
+    assert coordinator.error_code == "11"
+
+
+@pytest.mark.asyncio
+async def test_coordinator_error_code_none_when_missing(hass, monkeypatch):
+    """Test coordinator error_code returns None when key is missing."""
+    device_mod = _load_device_module(monkeypatch)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "email": "test@example.com",
+            "conf_access_token": "access",
+            "conf_refresh_token": "refresh",
+        },
+        options={"maint_interval_enabled": False},
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    api = _FakeAPI()
+    original_get_info = api.device.get_info
+
+    async def get_info_no_error(device_id):
+        data = await original_get_info(device_id)
+        info = data["data"]["getDevice"]["info"]
+        info.pop("error_code", None)
+        return data
+
+    api.device.get_info = get_info_no_error
+
+    coordinator = device_mod.RinnaiDeviceDataUpdateCoordinator(
+        hass, "device-1", dict(entry.options), entry, api_client=api
+    )
+
+    await coordinator._async_update_data()
+
+    assert coordinator.error_code is None
+
+
+@pytest.mark.asyncio
+async def test_coordinator_error_code_integer_conversion(hass, monkeypatch):
+    """Test coordinator error_code converts integers to strings."""
+    device_mod = _load_device_module(monkeypatch)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "email": "test@example.com",
+            "conf_access_token": "access",
+            "conf_refresh_token": "refresh",
+        },
+        options={"maint_interval_enabled": False},
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    api = _FakeAPI()
+    original_get_info = api.device.get_info
+
+    async def get_info_int_error(device_id):
+        data = await original_get_info(device_id)
+        data["data"]["getDevice"]["info"]["error_code"] = 72
+        return data
+
+    api.device.get_info = get_info_int_error
+
+    coordinator = device_mod.RinnaiDeviceDataUpdateCoordinator(
+        hass, "device-1", dict(entry.options), entry, api_client=api
+    )
+
+    await coordinator._async_update_data()
+
+    assert coordinator.error_code == "72"
+
+
+@pytest.mark.asyncio
+async def test_coordinator_error_code_lc_string(hass, monkeypatch):
+    """Test coordinator error_code uppercases LC code."""
+    device_mod = _load_device_module(monkeypatch)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "email": "test@example.com",
+            "conf_access_token": "access",
+            "conf_refresh_token": "refresh",
+        },
+        options={"maint_interval_enabled": False},
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    api = _FakeAPI()
+    original_get_info = api.device.get_info
+
+    async def get_info_lc_error(device_id):
+        data = await original_get_info(device_id)
+        data["data"]["getDevice"]["info"]["error_code"] = "lc"
+        return data
+
+    api.device.get_info = get_info_lc_error
+
+    coordinator = device_mod.RinnaiDeviceDataUpdateCoordinator(
+        hass, "device-1", dict(entry.options), entry, api_client=api
+    )
+
+    await coordinator._async_update_data()
+
+    assert coordinator.error_code == "LC"
+
+
+@pytest.mark.asyncio
+async def test_coordinator_error_code_empty_string(hass, monkeypatch):
+    """Test coordinator error_code returns None for empty string."""
+    device_mod = _load_device_module(monkeypatch)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "email": "test@example.com",
+            "conf_access_token": "access",
+            "conf_refresh_token": "refresh",
+        },
+        options={"maint_interval_enabled": False},
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    api = _FakeAPI()
+    original_get_info = api.device.get_info
+
+    async def get_info_empty_error(device_id):
+        data = await original_get_info(device_id)
+        data["data"]["getDevice"]["info"]["error_code"] = "  "
+        return data
+
+    api.device.get_info = get_info_empty_error
+
+    coordinator = device_mod.RinnaiDeviceDataUpdateCoordinator(
+        hass, "device-1", dict(entry.options), entry, api_client=api
+    )
+
+    await coordinator._async_update_data()
+
+    assert coordinator.error_code is None
+
+
+@pytest.mark.asyncio
+async def test_coordinator_error_description_property(hass, monkeypatch):
+    """Test coordinator error_description returns description for known code."""
+    device_mod = _load_device_module(monkeypatch)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "email": "test@example.com",
+            "conf_access_token": "access",
+            "conf_refresh_token": "refresh",
+        },
+        options={"maint_interval_enabled": False},
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    api = _FakeAPI()
+    coordinator = device_mod.RinnaiDeviceDataUpdateCoordinator(
+        hass, "device-1", dict(entry.options), entry, api_client=api
+    )
+
+    await coordinator._async_update_data()
+
+    assert coordinator.error_description == "No ignition"
+
+
+@pytest.mark.asyncio
+async def test_coordinator_error_description_none_when_no_code(hass, monkeypatch):
+    """Test coordinator error_description returns None when no error code."""
+    device_mod = _load_device_module(monkeypatch)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "email": "test@example.com",
+            "conf_access_token": "access",
+            "conf_refresh_token": "refresh",
+        },
+        options={"maint_interval_enabled": False},
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    api = _FakeAPI()
+    original_get_info = api.device.get_info
+
+    async def get_info_no_error(device_id):
+        data = await original_get_info(device_id)
+        info = data["data"]["getDevice"]["info"]
+        info.pop("error_code", None)
+        return data
+
+    api.device.get_info = get_info_no_error
+
+    coordinator = device_mod.RinnaiDeviceDataUpdateCoordinator(
+        hass, "device-1", dict(entry.options), entry, api_client=api
+    )
+
+    await coordinator._async_update_data()
+
+    assert coordinator.error_description is None
+
+
+@pytest.mark.asyncio
+async def test_local_coordinator_error_code_property(hass, monkeypatch):
+    """Test coordinator error_code property with local data."""
+    device_mod = _load_device_module(monkeypatch)
+    _load_local_module(monkeypatch)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "host": "192.168.1.100",
+            "connection_mode": "local",
+        },
+        options={},
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    local_client = _FakeLocalClient()
+    coordinator = device_mod.RinnaiDeviceDataUpdateCoordinator(
+        hass,
+        "LOCAL123",
+        dict(entry.options),
+        entry,
+        local_client=local_client,
+        connection_mode="local",
+    )
+
+    await coordinator._async_update_data()
+
+    assert coordinator.error_code == "12"
