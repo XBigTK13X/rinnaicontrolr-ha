@@ -19,7 +19,7 @@ rules:
     comment: entity.py contains shared RinnaiEntity base class
   config-flow:
     status: done
-    comment: Full UI config flow with cloud/local/hybrid modes
+    comment: Full UI config flow with cloud mode
   config-flow-test-coverage:
     status: done
     comment: Tests in test_config_flow.py cover all flow paths
@@ -55,10 +55,10 @@ rules:
     comment: Config flow validates credentials and tests connection
   test-before-setup:
     status: done
-    comment: _setup_cloud_client and _setup_local_client validate before setup
+    comment: _setup_cloud_client validate before setup
   unique-config-entry:
     status: done
-    comment: Uses async_set_unique_id() with email (cloud) or serial (local)
+    comment: Uses async_set_unique_id() with email (cloud)
 
   # ============================================================================
   # Silver tier requirements

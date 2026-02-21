@@ -21,8 +21,6 @@ from .const import (
     CONF_MAINT_INTERVAL_MINUTES,
     CONF_REFRESH_TOKEN,
     CONNECTION_MODE_CLOUD,
-    CONNECTION_MODE_HYBRID,
-    CONNECTION_MODE_LOCAL,
     DEFAULT_MAINT_INTERVAL_MINUTES,
     DOMAIN as RINNAI_DOMAIN,
     LOGGER,
@@ -30,8 +28,6 @@ from .const import (
 
 if TYPE_CHECKING:
     from aiorinnai.api import API
-
-    from .local import RinnaiLocalClient
 # Limit concurrent API calls per device
 PARALLEL_UPDATES = 1
 # Maximum retry attempts for transient errors (cloud mode)
@@ -40,11 +36,6 @@ MAX_RETRY_ATTEMPTS = 3
 RETRY_DELAY = 2
 # Refresh tokens 5 minutes before expiration
 TOKEN_REFRESH_BUFFER_SECONDS = 300
-# Local mode retry settings
-LOCAL_RETRY_WINDOW_SECONDS = 30.0
-LOCAL_INITIAL_RETRY_DELAY = 1.0
-LOCAL_MAX_RETRY_DELAY = 8.0
-LOCAL_BACKOFF_MULTIPLIER = 2.0
 
 ERROR_CODE_DESCRIPTIONS: dict[str, str] = {
     "2": "No burner operation during freeze protection mode",
@@ -108,8 +99,6 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     Supports three connection modes:
     - Cloud: Uses aiorinnai API with token-based authentication
-    - Local: Direct TCP connection to port 9798
-    - Hybrid: Local primary with cloud fallback
     """
 
     def __init__(
@@ -120,7 +109,6 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         config_entry: ConfigEntry,
         *,
         api_client: API | None = None,
-        local_client: RinnaiLocalClient | None = None,
         connection_mode: str = CONNECTION_MODE_CLOUD,
     ) -> None:
         """Initialize the device coordinator.
@@ -131,24 +119,19 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             options: Config entry options
             config_entry: The config entry for token persistence
             api_client: Cloud API client (required for cloud/hybrid modes)
-            local_client: Local TCP client (required for local/hybrid modes)
-            connection_mode: One of cloud, local, or hybrid
         """
         self.hass: HomeAssistant = hass
         self.api_client: API | None = api_client
-        self.local_client: RinnaiLocalClient | None = local_client
         self._connection_mode: str = connection_mode
         self._rinnai_device_id: str = device_id
         self._manufacturer: str = "Rinnai"
         self._device_information: dict[str, Any] | None = None
-        self._local_data: dict[str, Any] | None = None
         self._using_fallback: bool = False
         self.options = options
         self._config_entry = config_entry
         self._consecutive_errors: int = 0
         self._last_error: Exception | None = None
         self._last_maintenance_retrieval: float = 0.0
-        # Cache cloud device name for hybrid mode (persists even when using local data)
         self._cached_cloud_device_name: str | None = None
 
         super().__init__(
@@ -181,8 +164,6 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         Raises:
             ConfigEntryAuthFailed: When token refresh fails (triggers reauth flow).
         """
-        if self._connection_mode == CONNECTION_MODE_LOCAL:
-            return  # No tokens needed for local mode
 
         if self.api_client is None:
             return
@@ -230,110 +211,7 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._rinnai_device_id,
             self._connection_mode,
         )
-        if self._connection_mode == CONNECTION_MODE_LOCAL:
-            return await self._update_local()
-        elif self._connection_mode == CONNECTION_MODE_HYBRID:
-            return await self._update_hybrid()
-        else:
-            return await self._update_cloud()
-
-    async def _update_local(self) -> dict[str, Any]:
-        """Fetch data via local TCP connection with retry and backoff.
-
-        Retries with exponential backoff for up to LOCAL_RETRY_WINDOW_SECONDS
-        before marking the device as unavailable. This handles transient network
-        issues without impacting the normal polling schedule.
-        """
-        if self.local_client is None:
-            LOGGER.error(
-                "Local client not configured for device %s", self._rinnai_device_id
-            )
-            raise UpdateFailed("Local client not configured")
-
-        start_time = time.monotonic()
-        attempt = 0
-        retry_delay = LOCAL_INITIAL_RETRY_DELAY
-        last_error: Exception | None = None
-
-        while True:
-            attempt += 1
-            elapsed = time.monotonic() - start_time
-
-            try:
-                data = await self.local_client.get_status()
-                if data is not None:
-                    self._local_data = data
-                    self._consecutive_errors = 0
-                    self._last_error = None
-                    if attempt > 1:
-                        LOGGER.info(
-                            "Local update succeeded for device %s after %d attempts "
-                            "(%.1fs elapsed)",
-                            self._rinnai_device_id,
-                            attempt,
-                            elapsed,
-                        )
-                    else:
-                        LOGGER.debug(
-                            "Local update successful for device %s: temp=%s°F, "
-                            "heating=%s",
-                            self._rinnai_device_id,
-                            data.get("domestic_temperature"),
-                            data.get("domestic_combustion"),
-                        )
-
-                    # Trigger maintenance retrieval for diagnostic sensor fields
-                    if self.options.get(CONF_MAINT_INTERVAL_ENABLED, False):
-                        await self._maybe_do_maintenance_retrieval()
-
-                    return data
-
-                # data is None - treat as a retriable error
-                last_error = Exception("No response from local controller")
-
-            except Exception as error:
-                last_error = error
-
-            # Check if we've exceeded the retry window
-            elapsed = time.monotonic() - start_time
-            if elapsed >= LOCAL_RETRY_WINDOW_SECONDS:
-                break
-
-            # Calculate remaining time in window
-            remaining = LOCAL_RETRY_WINDOW_SECONDS - elapsed
-            actual_delay = min(retry_delay, remaining)
-
-            if actual_delay > 0:
-                LOGGER.debug(
-                    "Local update attempt %d failed for device %s: %s. "
-                    "Retrying in %.1fs (%.1fs remaining in window)",
-                    attempt,
-                    self._rinnai_device_id,
-                    last_error,
-                    actual_delay,
-                    remaining,
-                )
-                await asyncio.sleep(actual_delay)
-
-            # Exponential backoff with cap
-            retry_delay = min(
-                retry_delay * LOCAL_BACKOFF_MULTIPLIER, LOCAL_MAX_RETRY_DELAY
-            )
-
-        # All retries exhausted within the window
-        self._consecutive_errors += 1
-        self._last_error = last_error
-        total_elapsed = time.monotonic() - start_time
-        LOGGER.warning(
-            "Local update failed for device %s after %d attempts over %.1fs: %s",
-            self._rinnai_device_id,
-            attempt,
-            total_elapsed,
-            last_error,
-        )
-        raise UpdateFailed(
-            f"Local update failed after {attempt} attempts: {last_error}"
-        ) from last_error
+        return await self._update_cloud()
 
     async def _update_cloud(self) -> dict[str, Any]:
         """Fetch data via cloud API with retry logic."""
@@ -413,53 +291,6 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             f"Failed to fetch device data after {MAX_RETRY_ATTEMPTS} attempts"
         ) from last_error
 
-    async def _update_hybrid(self) -> dict[str, Any]:
-        """Fetch data with local primary, cloud fallback."""
-        local_error: Exception | None = None
-
-        # Try local first
-        if self.local_client is not None:
-            try:
-                data = await self.local_client.get_status()
-                if data is not None:
-                    self._local_data = data
-                    self._using_fallback = False
-                    self._consecutive_errors = 0
-                    self._last_error = None
-                    LOGGER.debug("Hybrid mode: using local data")
-                    # Fetch cloud device name once for user-friendly naming
-                    if not self._cached_cloud_device_name and self.api_client:
-                        await self._cache_cloud_device_name()
-
-                    # Trigger maintenance retrieval for diagnostic sensor fields
-                    if self.options.get(CONF_MAINT_INTERVAL_ENABLED, False):
-                        await self._maybe_do_maintenance_retrieval()
-
-                    return data
-            except Exception as error:
-                local_error = error
-                LOGGER.warning("Hybrid mode: local failed (%s), trying cloud...", error)
-
-        # Fall back to cloud
-        if self.api_client is not None:
-            try:
-                data = await self._update_cloud()
-                self._using_fallback = True
-                LOGGER.info("Hybrid mode: using cloud fallback")
-                return data
-            except Exception as cloud_error:
-                self._consecutive_errors += 1
-                self._last_error = cloud_error
-                # Include both errors in the message for better debugging
-                if local_error:
-                    raise UpdateFailed(
-                        f"Both connection methods failed. "
-                        f"Local: {local_error}, Cloud: {cloud_error}"
-                    ) from cloud_error
-                raise
-
-        raise UpdateFailed("No connection method available")
-
     async def _cache_cloud_device_name(self) -> None:
         """Fetch and cache the cloud device name for hybrid mode.
 
@@ -529,24 +360,11 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except (KeyError, TypeError):
             return default
 
-    def _get_local_value(self, key: str, default: Any = None) -> Any:
-        """Get a value from local data."""
-        if not self._local_data:
-            return default
-        return self._local_data.get(key, default)
-
     def _get_value(
-        self, cloud_keys: tuple[str, ...], local_key: str, default: Any = None
+        self, cloud_keys: tuple[str, ...], default: Any = None
     ) -> Any:
         """Get value from appropriate data source based on connection mode."""
-        if self._connection_mode == CONNECTION_MODE_LOCAL:
-            return self._get_local_value(local_key, default)
-        elif (
-            self._connection_mode == CONNECTION_MODE_HYBRID and not self._using_fallback
-        ):
-            return self._get_local_value(local_key, default)
-        else:
-            return self._get_cloud_value(*cloud_keys, default=default)
+        return self._get_cloud_value(*cloud_keys, default=default)
 
     @property
     def available(self) -> bool:
@@ -569,14 +387,7 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         # Try current cloud data first
         cloud_name = self._get_cloud_value("data", "getDevice", "device_name")
-        if cloud_name:
-            return cloud_name
-        # Use cached cloud name (for hybrid mode when using local data)
-        if self._cached_cloud_device_name:
-            return self._cached_cloud_device_name
-        # Fall back to serial number for local-only mode
-        serial = self._get_local_value("serial_number") or self._rinnai_device_id
-        return f"Rinnai {serial}"
+        return cloud_name
 
     @property
     def manufacturer(self) -> str:
@@ -881,7 +692,6 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _execute_action(
         self,
         action_name: str,
-        local_method: str | None = None,
         cloud_method: str | None = None,
         *args: Any,
     ) -> None:
@@ -889,56 +699,14 @@ class RinnaiDeviceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         Args:
             action_name: Human-readable name for logging.
-            local_method: Method name on local_client to call.
             cloud_method: Method name on api_client.device to call.
             *args: Arguments to pass to the method.
 
         In hybrid mode, tries local first, then falls back to cloud.
         """
-        if self._connection_mode == CONNECTION_MODE_LOCAL:
-            if local_method is None:
-                raise HomeAssistantError(f"{action_name} not supported in local mode")
-            await self._execute_local_action(action_name, local_method, *args)
-        elif self._connection_mode == CONNECTION_MODE_HYBRID:
-            # Try local first
-            if local_method is not None and self.local_client is not None:
-                try:
-                    await self._execute_local_action(action_name, local_method, *args)
-                    return
-                except Exception as error:
-                    LOGGER.warning(
-                        "Hybrid mode: local %s failed (%s), trying cloud...",
-                        action_name,
-                        error,
-                    )
-            # Fall back to cloud
-            if cloud_method is not None and self.api_client is not None:
-                await self._execute_cloud_action(action_name, cloud_method, *args)
-            else:
-                raise HomeAssistantError(f"Failed to {action_name}")
-        else:  # Cloud mode
-            if cloud_method is None:
-                raise HomeAssistantError(f"{action_name} not supported in cloud mode")
-            await self._execute_cloud_action(action_name, cloud_method, *args)
-
-    async def _execute_local_action(
-        self, action_name: str, method_name: str, *args: Any
-    ) -> None:
-        """Execute an action via local TCP connection."""
-        if self.local_client is None:
-            raise HomeAssistantError("Local client not configured")
-
-        try:
-            method = getattr(self.local_client, method_name)
-            result = await method(*args)
-            if result is False:
-                raise HomeAssistantError(f"Local {action_name} returned failure")
-            LOGGER.debug("Local %s successful", action_name)
-        except HomeAssistantError:
-            raise
-        except Exception as error:
-            LOGGER.error("Local %s failed: %s", action_name, error)
-            raise HomeAssistantError(f"Failed to {action_name}") from error
+        if cloud_method is None:
+            raise HomeAssistantError(f"{action_name} not supported in cloud mode")
+        await self._execute_cloud_action(action_name, cloud_method, *args)
 
     async def _execute_cloud_action(
         self, action_name: str, method_name: str, *args: Any

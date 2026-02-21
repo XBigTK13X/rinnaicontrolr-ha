@@ -22,11 +22,9 @@ from .const import (
     CONF_STORED_PASSWORD,
     CONNECTION_MODE_CLOUD,
     CONNECTION_MODE_HYBRID,
-    CONNECTION_MODE_LOCAL,
     DOMAIN,
 )
 from .device import RinnaiDeviceDataUpdateCoordinator
-from .local import RinnaiLocalClient
 
 if TYPE_CHECKING:
     from aiorinnai import API
@@ -43,7 +41,6 @@ class RinnaiRuntimeData:
 
     devices: list[RinnaiDeviceDataUpdateCoordinator] = field(default_factory=list)
     client: API | None = None
-    local_client: RinnaiLocalClient | None = None
     connection_mode: str = CONNECTION_MODE_CLOUD
     known_device_ids: set[str] = field(default_factory=set)
     # Callbacks for adding entities dynamically (set by platforms)
@@ -72,8 +69,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: RinnaiConfigEntry) -> bo
 
     Supports three connection modes:
     - Cloud: Uses aiorinnai API with Rinnai account credentials
-    - Local: Direct TCP connection to water heater controller
-    - Hybrid: Local primary with cloud fallback
 
     Args:
         hass: Home Assistant instance.
@@ -94,17 +89,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: RinnaiConfigEntry) -> bo
     )
 
     api_client: API | None = None
-    local_client: RinnaiLocalClient | None = None
     device_ids: list[str] = []
 
     # Set up clients based on connection mode
     if connection_mode in (CONNECTION_MODE_CLOUD, CONNECTION_MODE_HYBRID):
         api_client, device_ids = await _setup_cloud_client(hass, entry)
-
-    if connection_mode in (CONNECTION_MODE_LOCAL, CONNECTION_MODE_HYBRID):
-        local_client, local_device_id = await _setup_local_client(entry)
-        if connection_mode == CONNECTION_MODE_LOCAL:
-            device_ids = [local_device_id]
 
     if not device_ids:
         _LOGGER.warning("No Rinnai devices found for account")
@@ -127,7 +116,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: RinnaiConfigEntry) -> bo
             options,
             entry,
             api_client=api_client,
-            local_client=local_client,
             connection_mode=connection_mode,
         )
         coordinators.append(coordinator)
@@ -137,7 +125,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: RinnaiConfigEntry) -> bo
     entry.runtime_data = RinnaiRuntimeData(
         devices=coordinators,
         client=api_client,
-        local_client=local_client,
         connection_mode=connection_mode,
         known_device_ids=set(device_ids),
         options=options,
@@ -276,41 +263,6 @@ async def _setup_cloud_client(
 
     device_ids = [device["id"] for device in devices]
     return client, device_ids
-
-
-async def _setup_local_client(entry: ConfigEntry) -> tuple[RinnaiLocalClient, str]:
-    """Set up the local TCP client.
-
-    Returns:
-        Tuple of (local client, device ID from sysinfo).
-
-    Raises:
-        ConfigEntryNotReady: When local connection fails.
-    """
-    host = entry.data.get(CONF_HOST)
-    if not host:
-        raise ConfigEntryNotReady("No host configured for local connection")
-
-    _LOGGER.debug("Setting up local client for %s", host)
-
-    client = RinnaiLocalClient(host)
-
-    # Test connection and get device info
-    sysinfo = await client.get_sysinfo()
-    if sysinfo is None:
-        raise ConfigEntryNotReady(f"Unable to connect to Rinnai controller at {host}")
-
-    sysinfo_data = sysinfo.get("sysinfo", {})
-    serial_number = sysinfo_data.get("serial-number", host)
-
-    _LOGGER.info(
-        "Successfully connected to Rinnai controller at %s (Serial: %s)",
-        host,
-        serial_number,
-    )
-
-    # Use serial number as device ID for local mode
-    return client, serial_number
 
 
 async def _persist_tokens_if_changed(
@@ -485,7 +437,6 @@ async def async_discover_and_add_new_devices(
             runtime_data.options,
             entry,
             api_client=runtime_data.client,
-            local_client=runtime_data.local_client,
             connection_mode=runtime_data.connection_mode,
         )
         new_coordinators.append(coordinator)
@@ -582,10 +533,6 @@ async def async_check_device_changes(
 
     runtime_data = entry.runtime_data
 
-    # Only check for cloud/hybrid modes (local mode has fixed devices)
-    if runtime_data.connection_mode == CONNECTION_MODE_LOCAL:
-        return
-
     if runtime_data.client is None:
         return
 
@@ -645,7 +592,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
                 "Migrating from local-only version (v2.1.x) with host: %s",
                 existing_host,
             )
-            data[CONF_CONNECTION_MODE] = CONNECTION_MODE_LOCAL
             # Ensure no cloud credentials are set
             data.pop(CONF_EMAIL, None)
             data.pop(CONF_ACCESS_TOKEN, None)

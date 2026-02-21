@@ -12,16 +12,16 @@ Support for [Rinnai Control-R Water Heater monitoring and control device](https:
 
 > [!CAUTION]
 > ## ⚠️ Upgrading from v1.x.x? Migration Required!
-> 
+>
 > Version 2.0.0 renamed the integration folder from `rinnaicontrolr-ha` to `rinnai`. **HACS cannot handle this automatically.**
-> 
+>
 > **You must:**
 > 1. Remove the integration from Home Assistant
 > 2. Remove via HACS
 > 3. **Manually delete** `custom_components/rinnaicontrolr-ha/`
 > 4. Restart Home Assistant
 > 5. Install v2.0.0 fresh
-> 
+>
 > 📖 **[Full Migration Guide](MIGRATION.md)**
 
 ## KNOWN ISSUES
@@ -51,8 +51,6 @@ Support for [Rinnai Control-R Water Heater monitoring and control device](https:
 
 - **Connection Modes:**
     * Cloud - Uses Rinnai Control-R cloud API (default)
-    * Local - Direct TCP connection to water heater (port 9798) for faster, more reliable control
-    * Hybrid - Local primary with automatic cloud fallback
 
 - **Water Heater Control:**
     * Water temperature (&deg;F)

@@ -12,7 +12,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from . import RinnaiConfigEntry
 from .const import (
     CONF_RECIRCULATION_DURATION,
-    CONNECTION_MODE_LOCAL,
     DEFAULT_RECIRCULATION_DURATION,
     LOGGER,
 )
@@ -25,7 +24,6 @@ PARALLEL_UPDATES = 1
 # Timeout for optimistic state (seconds) - after this, fall back to device state
 # Cloud needs >60s since polling interval is 60s; local is much faster
 OPTIMISTIC_STATE_TIMEOUT_CLOUD = 90
-OPTIMISTIC_STATE_TIMEOUT_LOCAL = 10
 
 
 async def async_setup_entry(
@@ -75,8 +73,6 @@ class RinnaiRecirculationSwitch(RinnaiEntity, SwitchEntity):
     @property
     def _optimistic_timeout(self) -> int:
         """Get the optimistic state timeout based on connection mode."""
-        if self._device.connection_mode == CONNECTION_MODE_LOCAL:
-            return OPTIMISTIC_STATE_TIMEOUT_LOCAL
         return OPTIMISTIC_STATE_TIMEOUT_CLOUD
 
     @property

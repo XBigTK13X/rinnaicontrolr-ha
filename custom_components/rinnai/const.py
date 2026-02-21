@@ -35,9 +35,3 @@ DEFAULT_SAVE_PASSWORD: Final = False
 # Connection modes
 CONF_CONNECTION_MODE: Final = "connection_mode"
 CONNECTION_MODE_CLOUD: Final = "cloud"
-CONNECTION_MODE_LOCAL: Final = "local"
-CONNECTION_MODE_HYBRID: Final = "hybrid"
-
-# Local connection settings
-CONF_HOST: Final = "host"
-LOCAL_PORT: Final = 9798
