@@ -84,7 +84,7 @@
     "selector": {
         "connection_mode": {
             "options": {
-                "cloud": "Cloud (Rinnai account)",
+                "cloud": "Cloud (Rinnai account)"
             }
         }
     },
