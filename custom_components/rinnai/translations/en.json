@@ -25,40 +25,6 @@
                     "save_password": "If enabled, your password will be stored to automatically re-authenticate when your session expires. If disabled, you will need to manually re-authenticate."
                 }
             },
-            "local": {
-                "title": "Local Connection",
-                "description": "Enter the IP address of your Rinnai water heater controller. The controller must be on your local network and accessible on port 9798.",
-                "data": {
-                    "host": "Host"
-                },
-                "data_description": {
-                    "host": "IP address of your Rinnai water heater controller (e.g., 192.168.1.100)"
-                }
-            },
-            "hybrid_cloud": {
-                "title": "Hybrid Mode - Cloud Credentials",
-                "description": "First, enter your Rinnai Control-R account credentials for cloud fallback.",
-                "data": {
-                    "email": "Email",
-                    "password": "Password",
-                    "save_password": "Save password for automatic re-authentication"
-                },
-                "data_description": {
-                    "email": "The email address used for your Rinnai Control-R account",
-                    "password": "Your Rinnai Control-R account password",
-                    "save_password": "If enabled, your password will be stored to automatically re-authenticate when your session expires. If disabled, you will need to manually re-authenticate."
-                }
-            },
-            "hybrid_local": {
-                "title": "Hybrid Mode - Local Connection",
-                "description": "Now enter the IP address of your Rinnai water heater controller for primary local control.",
-                "data": {
-                    "host": "Host"
-                },
-                "data_description": {
-                    "host": "IP address of your Rinnai water heater controller (e.g., 192.168.1.100)"
-                }
-            },
             "reauth": {
                 "title": "Re-authenticate with Rinnai Control-R",
                 "description": "Your session has expired. Please re-enter your credentials.",
@@ -119,8 +85,6 @@
         "connection_mode": {
             "options": {
                 "cloud": "Cloud (Rinnai account)",
-                "local": "Local (direct connection)",
-                "hybrid": "Hybrid (local + cloud fallback)"
             }
         }
     },

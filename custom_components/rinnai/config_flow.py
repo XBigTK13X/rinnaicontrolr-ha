@@ -39,7 +39,6 @@ from .const import (
     CONF_SAVE_PASSWORD,
     CONF_STORED_PASSWORD,
     CONNECTION_MODE_CLOUD,
-    CONNECTION_MODE_HYBRID,
     DEFAULT_MAINT_INTERVAL_ENABLED,
     DEFAULT_MAINT_INTERVAL_MINUTES,
     DEFAULT_RECIRCULATION_DURATION,
@@ -373,7 +372,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self.host = new_host
 
         # Check if switching to a mode that requires cloud credentials
-        needs_cloud = new_mode in (CONNECTION_MODE_CLOUD, CONNECTION_MODE_HYBRID)
+        needs_cloud = True
 
         if needs_cloud:
             # Always prompt for cloud credentials to ensure they're valid
@@ -503,7 +502,7 @@ class OptionsFlow(config_entries.OptionsFlow):
         connection_mode = self._config_entry.data.get(
             CONF_CONNECTION_MODE, CONNECTION_MODE_CLOUD
         )
-        return connection_mode in (CONNECTION_MODE_LOCAL, CONNECTION_MODE_HYBRID)
+        return False
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

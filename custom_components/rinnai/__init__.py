@@ -17,11 +17,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_CONNECTION_MODE,
-    CONF_HOST,
     CONF_REFRESH_TOKEN,
     CONF_STORED_PASSWORD,
     CONNECTION_MODE_CLOUD,
-    CONNECTION_MODE_HYBRID,
     DOMAIN,
 )
 from .device import RinnaiDeviceDataUpdateCoordinator
@@ -92,8 +90,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: RinnaiConfigEntry) -> bo
     device_ids: list[str] = []
 
     # Set up clients based on connection mode
-    if connection_mode in (CONNECTION_MODE_CLOUD, CONNECTION_MODE_HYBRID):
-        api_client, device_ids = await _setup_cloud_client(hass, entry)
+    api_client, device_ids = await _setup_cloud_client(hass, entry)
 
     if not device_ids:
         _LOGGER.warning("No Rinnai devices found for account")
@@ -144,8 +141,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: RinnaiConfigEntry) -> bo
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     # Set up periodic device discovery for cloud/hybrid modes
-    if connection_mode in (CONNECTION_MODE_CLOUD, CONNECTION_MODE_HYBRID):
-        _setup_device_discovery_listener(hass, entry)
+    _setup_device_discovery_listener(hass, entry)
 
     _LOGGER.info(
         "Rinnai integration setup complete with %d device(s)", len(coordinators)
