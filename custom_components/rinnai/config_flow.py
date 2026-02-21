@@ -31,7 +31,6 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_CONNECTION_MODE,
-    CONF_HOST,
     CONF_MAINT_INTERVAL_ENABLED,
     CONF_MAINT_INTERVAL_MINUTES,
     CONF_RECIRCULATION_DURATION,
@@ -107,13 +106,6 @@ def _get_cloud_auth_schema(
     )
 
 
-def _get_local_schema(default_host: str = "") -> vol.Schema:
-    """Get the local connection schema."""
-    if default_host:
-        return vol.Schema({vol.Required(CONF_HOST, default=default_host): str})
-    return vol.Schema({vol.Required(CONF_HOST): str})
-
-
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for Rinnai."""
 
@@ -124,10 +116,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self.api: API | None = None
         self.username: str | None = None
         self.password: str | None = None
-        self.host: str | None = None
         self.connection_mode: str | None = None
         self.save_password: bool = False
-        self._local_sysinfo: dict[str, Any] | None = None
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -349,7 +339,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         if user_input is None:
             current_mode = entry.data.get(CONF_CONNECTION_MODE, CONNECTION_MODE_CLOUD)
-            current_host = entry.data.get(CONF_HOST, "")
 
             return self.async_show_form(
                 step_id="reconfigure",
@@ -358,18 +347,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         vol.Required(
                             CONF_CONNECTION_MODE, default=current_mode
                         ): _get_connection_mode_selector(),
-                        vol.Optional(CONF_HOST, default=current_host): str,
                     }
                 ),
                 errors=errors,
             )
 
         new_mode = user_input[CONF_CONNECTION_MODE]
-        new_host = user_input.get(CONF_HOST, "")
 
         # Store for use in subsequent steps
         self.connection_mode = new_mode
-        self.host = new_host
 
         # Check if switching to a mode that requires cloud credentials
         needs_cloud = True
@@ -381,8 +367,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         # Local-only mode: just update the entry
         new_data = {**entry.data, CONF_CONNECTION_MODE: new_mode}
-        if new_host:
-            new_data[CONF_HOST] = new_host
 
         self.hass.config_entries.async_update_entry(entry, data=new_data)
         await self.hass.config_entries.async_reload(entry.entry_id)
@@ -464,8 +448,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             CONF_ACCESS_TOKEN: self.api.access_token,
             CONF_REFRESH_TOKEN: self.api.refresh_token,
         }
-        if self.host:
-            new_data[CONF_HOST] = self.host
 
         # Store or remove password based on user preference
         if self.save_password and self.password:
@@ -499,9 +481,6 @@ class OptionsFlow(config_entries.OptionsFlow):
         Only local and hybrid modes support configurable maintenance intervals.
         Cloud mode uses the default interval.
         """
-        connection_mode = self._config_entry.data.get(
-            CONF_CONNECTION_MODE, CONNECTION_MODE_CLOUD
-        )
         return False
 
     async def async_step_init(
